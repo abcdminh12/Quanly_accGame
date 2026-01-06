@@ -4,8 +4,10 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const Account = require("./models/Account");
-const { encrypt, decrypt } = require("./utils/cryptoHelper");
+
+// --- SỬA ĐỔI Ở ĐÂY: Trỏ trực tiếp vào file cùng cấp (không có /models hay /utils nữa) ---
+const Account = require("./Account");
+const { encrypt, decrypt } = require("./cryptoHelper");
 
 const app = express();
 // Lấy Port và MongoURI từ .env
@@ -15,7 +17,16 @@ const MONGO_URI =
 
 app.use(cors());
 app.use(express.json());
+
+// Cấu hình file tĩnh (HTML/CSS/JS)
+// Lưu ý: Nếu file index.html bạn cũng để ở ngoài cùng (ngang hàng server.js),
+// code dưới sẽ giúp server trả về file đó khi truy cập trang chủ.
 app.use(express.static("public"));
+
+// Route dự phòng: Nếu không tìm thấy trong folder public, thử trả về index.html ở thư mục gốc
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
 
 mongoose
   .connect(MONGO_URI)
