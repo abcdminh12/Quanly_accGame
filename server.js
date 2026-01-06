@@ -107,6 +107,7 @@ app.delete("/api/accounts/:id", async (req, res) => {
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`🚀 Server chạy tại http://localhost:${PORT}`)
-);
+app.listen(PORT, "0.0.0.0", () => {
+  // Thêm '0.0.0.0' để chắc chắn nó nghe từ mọi nguồn
+  console.log(`Server is running on port ${PORT}`);
+});
