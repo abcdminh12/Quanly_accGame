@@ -29,7 +29,7 @@ app.get("/api/accounts", async (req, res) => {
     const accounts = await Account.find().sort({ createdAt: -1 });
     const safeAccounts = accounts.map((acc) => ({
       ...acc._doc,
-      password: "••••••••",
+      password: "••••••••", // Luôn che pass khi load danh sách
     }));
     res.json(safeAccounts);
   } catch (err) {
@@ -41,8 +41,9 @@ app.post("/api/accounts", async (req, res) => {
   try {
     const body = req.body;
     // Mã hóa pass mới
-    body.password = encrypt(body.password);
-
+    if (body.password) {
+      body.password = encrypt(body.password);
+    }
     const newAccount = new Account(body);
     await newAccount.save();
     res.json({ message: "Thêm thành công!" });
@@ -57,7 +58,11 @@ app.put("/api/accounts/:id", async (req, res) => {
     const updateData = req.body;
 
     // Nếu có nhập pass mới thì mã hóa, không thì bỏ qua
-    if (updateData.password && updateData.password !== "••••••••") {
+    if (
+      updateData.password &&
+      updateData.password !== "••••••••" &&
+      updateData.password.trim() !== ""
+    ) {
       updateData.password = encrypt(updateData.password);
     } else {
       delete updateData.password;
@@ -81,9 +86,15 @@ app.post("/api/reveal", async (req, res) => {
   try {
     const acc = await Account.findById(id);
     if (!acc) return res.status(404).json({ message: "Not found" });
-    res.json({ success: true, password: decrypt(acc.password) });
+
+    // Giải mã password
+    const rawPass = decrypt(acc.password);
+    res.json({ success: true, password: rawPass });
   } catch (err) {
-    res.status(500).json({ error: "Lỗi giải mã" });
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "Lỗi giải mã hoặc dữ liệu cũ không tương thích" });
   }
 });
 
