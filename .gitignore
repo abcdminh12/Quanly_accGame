@@ -1,0 +1,9 @@
+# Chặn thư mục thư viện nặng
+node_modules/
+
+# Chặn file chứa mật khẩu (QUAN TRỌNG NHẤT)
+.env
+
+# Chặn file hệ thống
+.DS_Store
+Thumbs.db

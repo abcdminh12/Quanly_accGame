@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⚡ CINEMA MANAGER ⚡</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg-dark: #050505;
+        --neon-blue: #00f3ff;
+        --neon-pink: #bc13fe;
+        --gold: #f1c40f;
+        --text-main: #ffffff;
+      }
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: var(--bg-dark);
+        background-image: radial-gradient(
+          circle at 50% 50%,
+          #1a1a2e 0%,
+          #000 100%
+        );
+        color: var(--text-main);
+        margin: 0;
+        padding: 20px;
+      }
+      h1 {
+        font-family: "Orbitron", sans-serif;
+        text-align: center;
+        color: var(--neon-blue);
+        text-shadow: 0 0 15px var(--neon-blue);
+        letter-spacing: 2px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        max-width: 1000px;
+        margin: 0 auto 20px;
+        flex-wrap: wrap;
+      }
+      .search-box {
+        flex: 1;
+        position: relative;
+      }
+      .search-box input {
+        width: 100%;
+        padding: 12px 40px 12px 20px;
+        background: #111;
+        border: 1px solid #333;
+        color: white;
+        border-radius: 30px;
+        outline: none;
+        transition: 0.3s;
+      }
+      .search-box input:focus {
+        border-color: var(--neon-pink);
+        box-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+      }
+      .btn-toggle {
+        background: var(--neon-blue);
+        border: none;
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      /* FORM HIỆU ỨNG */
+      .upload-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: 0.5s;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .upload-wrapper.show {
+        max-height: 1200px;
+        margin-bottom: 30px;
+      }
+      .upload-box {
+        background: #16161a;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #333;
+        box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+      }
+      .custom-input {
+        width: 100%;
+        padding: 10px;
+        background: #000;
+        border: 1px solid #444;
+        color: white;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
+      .custom-input:focus {
+        border-color: var(--gold);
+      }
+      .btn-submit {
+        width: 100%;
+        padding: 12px;
+        background: var(--neon-pink);
+        border: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 5px;
+        margin-top: 10px;
+      }
+      .btn-cancel {
+        background: #444;
+        margin-top: 5px;
+      }
+      .input-label {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 4px;
+        display: block;
+        font-weight: bold;
+      }
+
+      /* GRID & CARD */
+      .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+        padding: 20px 0;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+      .card-container {
+        width: 100%;
+        aspect-ratio: 16/9;
+        perspective: 1000px;
+        cursor: pointer;
+      }
+      .card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+      }
+      .card-container.is-flipped .card-inner {
+        transform: rotateY(180deg);
+      }
+      @media (hover: hover) {
+        .card-container:hover .card-inner {
+          transform: rotateY(180deg);
+        }
+      }
+
+      .card-front,
+      .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #333;
+      }
+      .card-front {
+        background: black;
+      }
+      .card-front img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: 0.5s;
+        opacity: 0.8;
+      }
+      .card-container:hover .card-front img {
+        transform: scale(1.1);
+        opacity: 1;
+      }
+      .overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.95), transparent);
+        padding: 20px 15px 10px;
+        box-sizing: border-box;
+        text-align: left;
+      }
+      .game-tag {
+        background: var(--neon-blue);
+        color: black;
+        padding: 2px 8px;
+        font-size: 10px;
+        font-weight: bold;
+        border-radius: 4px;
+        text-transform: uppercase;
+      }
+      .acc-name {
+        margin: 5px 0 0;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        text-shadow: 0 2px 4px black;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .rank-tag {
+        font-size: 10px;
+        background: #444;
+        padding: 2px 5px;
+        border-radius: 3px;
+        color: #ddd;
+        margin-left: 5px;
+      }
+
+      /* BADGES */
+      .status-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 5;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 11px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+      }
+      .st-san-sang {
+        background: #00ff88;
+        color: black;
+      }
+      .st-da-ban {
+        background: #ff4757;
+        color: white;
+      }
+      .st-da-coc {
+        background: #ffa502;
+        color: black;
+      }
+      .price-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        background: rgba(0, 0, 0, 0.8);
+        color: var(--gold);
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: bold;
+        border: 1px solid var(--gold);
+        font-family: "Orbitron", sans-serif;
+      }
+      .sold-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .sold-text {
+        border: 3px solid #ff4757;
+        color: #ff4757;
+        padding: 10px 30px;
+        font-size: 24px;
+        font-weight: 900;
+        transform: rotate(-10deg);
+        text-transform: uppercase;
+        letter-spacing: 5px;
+      }
+
+      /* BACK SIDE */
+      .card-back {
+        background: #1a1a2e;
+        color: white;
+        transform: rotateY(180deg);
+        padding: 15px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--neon-blue);
+      }
+      .back-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #333;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+      }
+      .off-game-info {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        font-size: 12px;
+        color: var(--neon-blue);
+      }
+      .note-box {
+        flex-grow: 1;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 8px;
+        border-radius: 5px;
+        font-size: 13px;
+        color: #ccc;
+        overflow-y: auto;
+        text-align: left;
+        margin-bottom: 5px;
+        border-left: 2px solid var(--neon-pink);
+      }
+      .btn-row {
+        display: flex;
+        gap: 5px;
+        margin-top: auto;
+      }
+      .btn-act {
+        flex: 1;
+        border: none;
+        padding: 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 12px;
+        color: black;
+      }
+      .btn-edit {
+        background: var(--gold);
+      } /* Nút Sửa Mới */
+      .btn-view {
+        background: var(--neon-blue);
+      }
+      .btn-del {
+        background: #ff4757;
+        color: white;
+        width: 35px;
+        flex: none;
+      }
+
+      /* MODAL DETAIL (Giữ nguyên) */
+      #detailModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+      }
+      .detail-box {
+        width: 95%;
+        max-width: 1100px;
+        height: 90vh;
+        background: #111;
+        display: flex;
+        flex-direction: column;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #333;
+      }
+      @media (min-width: 800px) {
+        .detail-box {
+          flex-direction: row;
+        }
+      }
+      .dt-left {
+        flex: 2;
+        background: black;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .main-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .nav-btn {
+        position: absolute;
+        top: 50%;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        cursor: pointer;
+        font-size: 20px;
+        border-radius: 50%;
+        transform: translateY(-50%);
+      }
+      .prev {
+        left: 10px;
+      }
+      .next {
+        right: 10px;
+      }
+      .dt-right {
+        flex: 1;
+        padding: 20px;
+        background: #15151a;
+        color: #ddd;
+        overflow-y: auto;
+        position: relative;
+      }
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+      }
+      .copy-row {
+        background: #222;
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        border: 1px dashed #444;
+      }
+      .copy-row:hover {
+        border-color: var(--neon-blue);
+        background: #333;
+      }
+
+      #passModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+      }
+      .pass-input {
+        padding: 10px;
+        text-align: center;
+        background: #000;
+        color: var(--neon-blue);
+        border: 1px solid #444;
+        width: 200px;
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+      #toast {
+        visibility: hidden;
+        min-width: 250px;
+        margin-left: -125px;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 2px;
+        padding: 16px;
+        position: fixed;
+        z-index: 5000;
+        left: 50%;
+        bottom: 30px;
+        font-size: 17px;
+        border-bottom: 3px solid var(--neon-blue);
+      }
+      #toast.show {
+        visibility: visible;
+        -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s;
+      }
+      @-webkit-keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+      @keyframes fadein {
+        from {
+          bottom: 0;
+          opacity: 0;
+        }
+        to {
+          bottom: 30px;
+          opacity: 1;
+        }
+      }
+      @-webkit-keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+      @keyframes fadeout {
+        from {
+          bottom: 30px;
+          opacity: 1;
+        }
+        to {
+          bottom: 0;
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>QUẢN LÝ ACC (EDIT MODE)</h1>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Tìm kiếm..."
+          onkeyup="filterAcc()"
+        />
+      </div>
+      <button
+        class="btn-toggle"
+        onclick="resetForm(); document.getElementById('uploadWrapper').classList.toggle('show')"
+      >
+        + THÊM / ĐÓNG
+      </button>
+    </div>
+
+    <div class="upload-wrapper" id="uploadWrapper">
+      <div class="upload-box">
+        <h3 style="color: var(--neon-blue); margin-top: 0" id="formTitle">
+          THÊM TÀI KHOẢN MỚI
+        </h3>
+        <form id="addForm">
+          <input type="hidden" id="editId" />
+          <div style="display: flex; gap: 10px">
+            <div style="flex: 1">
+              <label class="input-label">Tên Game</label
+              ><input class="custom-input" name="gameName" required />
+            </div>
+            <div style="flex: 1">
+              <label class="input-label">Rank</label
+              ><input class="custom-input" name="rank" />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px">
+            <div style="flex: 1">
+              <label class="input-label">Tài khoản</label
+              ><input class="custom-input" name="username" required />
+            </div>
+            <div style="flex: 1">
+              <label class="input-label"
+                >Mật khẩu (Để trống nếu không đổi)</label
+              ><input
+                class="custom-input"
+                name="password"
+                placeholder="******"
+              />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px">
+            <div style="flex: 1">
+              <label class="input-label">Giá bán</label
+              ><input
+                class="custom-input"
+                type="number"
+                name="price"
+                required
+              />
+            </div>
+            <div style="flex: 1">
+              <label class="input-label">Giá cũ</label
+              ><input class="custom-input" type="number" name="oldPrice" />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px">
+            <div style="flex: 1">
+              <label class="input-label">Trạng thái</label>
+              <select class="custom-input" name="status">
+                <option value="san-sang">🟢 Sẵn sàng</option>
+                <option value="da-coc">🟡 Đã cọc</option>
+                <option value="da-ban">🔴 Đã bán</option>
+              </select>
+            </div>
+            <div style="flex: 1">
+              <label class="input-label">Ngày Off Game</label
+              ><input
+                class="custom-input"
+                type="date"
+                name="lastPlayed"
+                required
+              />
+            </div>
+          </div>
+
+          <label class="input-label">Link Ảnh bìa (16:9)</label>
+          <input class="custom-input" name="avatar" required />
+
+          <label class="input-label">Mô tả</label>
+          <textarea class="custom-input" name="note" rows="2"></textarea>
+
+          <label class="input-label">Link Ảnh kho đồ (Mỗi dòng 1 link)</label>
+          <textarea
+            class="custom-input"
+            name="resourceImages"
+            rows="3"
+          ></textarea>
+
+          <button type="submit" class="btn-submit" id="btnSubmit">
+            LƯU ACC
+          </button>
+          <button
+            type="button"
+            class="btn-submit btn-cancel"
+            onclick="resetForm()"
+          >
+            HỦY / RESET
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="accGrid" class="grid-container"></div>
+
+    <div id="detailModal">
+      <div class="detail-box">
+        <div class="dt-left">
+          <img id="dtMainImg" class="main-img" src="" /><button
+            class="nav-btn prev"
+            onclick="move(-1)"
+          >
+            ❮</button
+          ><button class="nav-btn next" onclick="move(1)">❯</button>
+          <div
+            style="position: absolute; bottom: 10px; display: flex; gap: 5px"
+            id="dtThumbs"
+          ></div>
+        </div>
+        <div class="dt-right">
+          <span
+            class="close-btn"
+            onclick="document.getElementById('detailModal').style.display='none'"
+            >&times;</span
+          >
+          <h2 id="dtUser" style="color: var(--neon-blue); margin-top: 0"></h2>
+          <div style="font-size: 14px; color: #aaa; margin-bottom: 20px">
+            <span
+              id="dtGame"
+              style="
+                background: #333;
+                padding: 3px 8px;
+                border-radius: 4px;
+                color: white;
+              "
+            ></span
+            ><span
+              id="dtPrice"
+              style="
+                color: var(--gold);
+                font-weight: bold;
+                margin-left: 10px;
+                font-size: 16px;
+              "
+            ></span>
+          </div>
+          <div
+            id="dtOffDays"
+            style="
+              background: rgba(255, 0, 0, 0.1);
+              color: #ff6b6b;
+              padding: 10px;
+              border-radius: 5px;
+              margin-bottom: 10px;
+              font-size: 13px;
+            "
+          ></div>
+          <div
+            class="copy-row"
+            onclick="copyTxt(this.querySelector('span').innerText)"
+          >
+            <small>User:</small>
+            <span id="dtUserTxt" style="color: var(--neon-blue)"></span>
+            <i class="fas fa-copy"></i>
+          </div>
+          <div
+            id="passBox"
+            class="copy-row"
+            style="display: none; border-color: var(--neon-pink)"
+            onclick="copyTxt(this.querySelector('span').innerText)"
+          >
+            <small>Pass:</small>
+            <span id="dtPassTxt" style="font-weight: bold"></span>
+            <i class="fas fa-copy"></i>
+          </div>
+          <div
+            style="margin-top: 20px; white-space: pre-line; color: #bbb"
+            id="dtNote"
+          ></div>
+          <button
+            class="btn-submit"
+            style="
+              background: transparent;
+              border: 1px solid var(--neon-pink);
+              color: var(--neon-pink);
+              margin-top: 30px;
+            "
+            onclick="openPass()"
+          >
+            🔓 MỞ KHÓA PASS
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="passModal">
+      <div
+        style="
+          background: #222;
+          padding: 20px;
+          border-radius: 10px;
+          text-align: center;
+          border: 1px solid #444;
+        "
+      >
+        <h3 style="margin-top: 0">NHẬP MÃ ADMIN</h3>
+        <input
+          type="password"
+          id="admCode"
+          class="pass-input"
+          placeholder="admin123"
+        /><br /><button
+          onclick="document.getElementById('passModal').style.display='none'"
+          style="
+            padding: 8px 15px;
+            background: #444;
+            color: white;
+            border: none;
+            cursor: pointer;
+          "
+        >
+          Hủy</button
+        ><button
+          onclick="checkCode()"
+          style="
+            padding: 8px 15px;
+            background: var(--neon-pink);
+            color: white;
+            border: none;
+            cursor: pointer;
+          "
+        >
+          OK
+        </button>
+      </div>
+    </div>
+    <div id="toast">Đã copy thành công!</div>
+
+    <script>
+      const API = "";
+      let list = [],
+        curr = null,
+        imgs = [],
+        idx = 0;
+      let editingId = null;
+
+      async function load() {
+        list = await (await fetch(`${API}/accounts`)).json();
+        render(list);
+      }
+
+      function formatMoney(n) {
+        return new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(n);
+      }
+      function calculateDaysOff(dateString) {
+        if (!dateString) return "Không rõ";
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffDays = Math.ceil(
+          Math.abs(now - date) / (1000 * 60 * 60 * 24)
+        );
+        return diffDays + " ngày";
+      }
+
+      function render(data) {
+        const g = document.getElementById("accGrid");
+        g.innerHTML = "";
+        data.forEach((acc) => {
+          let stClass = "st-san-sang",
+            stText = "Sẵn sàng",
+            soldHtml = "";
+          if (acc.status === "da-ban") {
+            stClass = "st-da-ban";
+            stText = "ĐÃ BÁN";
+            soldHtml =
+              '<div class="sold-overlay"><div class="sold-text">SOLD OUT</div></div>';
+          } else if (acc.status === "da-coc") {
+            stClass = "st-da-coc";
+            stText = "ĐÃ CỌC";
+          }
+
+          const daysOff = calculateDaysOff(acc.lastPlayed);
+          const daysOffHtml = `<span style="color: #ff4757; font-weight: bold;"><i class="fas fa-history"></i> Off ${daysOff}</span>`;
+
+          g.innerHTML += `
+            <div class="card-container" onclick="this.classList.toggle('is-flipped')">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <span class="status-badge ${stClass}">${stText}</span>
+                        <div class="price-tag">${formatMoney(
+                          acc.price || 0
+                        )}</div>
+                        <img src="${
+                          acc.avatar
+                        }" onerror="this.src='https://via.placeholder.com/400x225?text=Lỗi+Ảnh'">
+                        ${soldHtml}
+                        <div class="overlay"><span class="game-tag">${
+                          acc.gameName
+                        }</span> <span class="rank-tag">${
+            acc.rank || "?"
+          }</span><div class="acc-name">${acc.username}</div></div>
+                    </div>
+                    <div class="card-back">
+                        <div class="back-header"><strong style="color:var(--neon-blue)">${
+                          acc.username
+                        }</strong><strong style="color:var(--gold)">${formatMoney(
+            acc.price
+          )}</strong></div>
+                        <div class="off-game-info">${daysOffHtml} (${
+            acc.lastPlayed || "?"
+          })</div>
+                        <div class="note-box">${acc.note || "..."}</div>
+                        <div class="btn-row">
+                            <button class="btn-act btn-view" onclick="detail('${
+                              acc._id
+                            }', event)">CHI TIẾT</button>
+                            <button class="btn-act btn-edit" onclick="editAcc('${
+                              acc._id
+                            }', event)">SỬA</button> 
+                            <button class="btn-act btn-del" onclick="del('${
+                              acc._id
+                            }', event)"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        });
+      }
+
+      function editAcc(id, e) {
+        e.stopPropagation();
+        const acc = list.find((a) => a._id === id);
+        if (!acc) return;
+        const f = document.getElementById("addForm");
+        f.gameName.value = acc.gameName;
+        f.rank.value = acc.rank;
+        f.username.value = acc.username;
+        f.password.value = "";
+        f.price.value = acc.price;
+        f.oldPrice.value = acc.oldPrice;
+        f.status.value = acc.status;
+        f.lastPlayed.value = acc.lastPlayed;
+        f.avatar.value = acc.avatar;
+        f.note.value = acc.note;
+        f.resourceImages.value = acc.resourceImages.join("\n");
+
+        editingId = id;
+        document.getElementById(
+          "formTitle"
+        ).innerText = `CẬP NHẬT ACC: ${acc.username}`;
+        document.getElementById("btnSubmit").innerText = "CẬP NHẬT DỮ LIỆU";
+        document.getElementById("btnSubmit").style.background = "var(--gold)";
+        document.getElementById("btnSubmit").style.color = "black";
+        document.getElementById("uploadWrapper").classList.add("show");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function resetForm() {
+        const f = document.getElementById("addForm");
+        f.reset();
+        editingId = null;
+        document.getElementById("formTitle").innerText = "THÊM TÀI KHOẢN MỚI";
+        document.getElementById("btnSubmit").innerText = "LƯU ACC";
+        document.getElementById("btnSubmit").style.background =
+          "var(--neon-pink)";
+        document.getElementById("btnSubmit").style.color = "white";
+      }
+
+      document
+        .getElementById("addForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = e.target;
+          const body = {
+            gameName: f.gameName.value,
+            username: f.username.value,
+            password: f.password.value,
+            lastPlayed: f.lastPlayed.value,
+            note: f.note.value,
+            avatar: f.avatar.value,
+            price: Number(f.price.value),
+            oldPrice: Number(f.oldPrice.value),
+            rank: f.rank.value,
+            status: f.status.value,
+            resourceImages: f.resourceImages.value
+              .split("\n")
+              .map((s) => s.trim())
+              .filter((s) => s),
+          };
+
+          let url = `${API}/accounts`,
+            method = "POST";
+          if (editingId) {
+            url = `${API}/accounts/${editingId}`;
+            method = "PUT";
+          }
+
+          const res = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          if (res.ok) {
+            alert(editingId ? "Đã cập nhật!" : "Đã thêm mới!");
+            resetForm();
+            load();
+            document.getElementById("uploadWrapper").classList.remove("show");
+          } else {
+            alert("Lỗi server!");
+          }
+        });
+
+      function filterAcc() {
+        const k = document.getElementById("searchInput").value.toLowerCase();
+        render(
+          list.filter(
+            (a) =>
+              a.gameName.toLowerCase().includes(k) ||
+              a.username.toLowerCase().includes(k) ||
+              (a.rank && a.rank.toLowerCase().includes(k))
+          )
+        );
+      }
+      async function del(id, e) {
+        e.stopPropagation();
+        if (confirm("Xóa vĩnh viễn nhé?")) {
+          await fetch(`${API}/accounts/${id}`, { method: "DELETE" });
+          load();
+        }
+      }
+      function detail(id, e) {
+        e.stopPropagation();
+        curr = list.find((a) => a._id === id);
+        if (!curr) return;
+        document.getElementById("detailModal").style.display = "flex";
+        document.getElementById("dtUser").innerText = curr.username;
+        document.getElementById("dtUserTxt").innerText = curr.username;
+        document.getElementById("dtGame").innerText = curr.gameName;
+        document.getElementById("dtPrice").innerText = formatMoney(curr.price);
+        document.getElementById("dtNote").innerText = curr.note || "";
+        document.getElementById(
+          "dtOffDays"
+        ).innerHTML = `<i class="far fa-clock"></i> Ngày vào game cuối: <b>${
+          curr.lastPlayed
+        }</b> (Đã Off ${calculateDaysOff(curr.lastPlayed)})`;
+        document.getElementById("passBox").style.display = "none";
+        imgs = curr.resourceImages.length ? curr.resourceImages : [curr.avatar];
+        idx = 0;
+        showSlide();
+      }
+      function showSlide() {
+        document.getElementById("dtMainImg").src = imgs[idx];
+        document.getElementById("dtThumbs").innerHTML = imgs
+          .map(
+            (l, i) =>
+              `<img src="${l}" style="width:40px; height:40px; border-radius:4px; cursor:pointer; border:${
+                i === idx ? "2px solid cyan" : "none"
+              }" onclick="idx=${i};showSlide()">`
+          )
+          .join("");
+      }
+      function move(n) {
+        idx += n;
+        if (idx < 0) idx = imgs.length - 1;
+        if (idx >= imgs.length) idx = 0;
+        showSlide();
+      }
+      function openPass() {
+        document.getElementById("passModal").style.display = "flex";
+        document.getElementById("admCode").value = "";
+        document.getElementById("admCode").focus();
+      }
+      async function checkCode() {
+        const c = document.getElementById("admCode").value;
+        const res = await (
+          await fetch(`${API}/reveal`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: curr._id, masterCode: c }),
+          })
+        ).json();
+        if (res.success) {
+          document.getElementById("passModal").style.display = "none";
+          document.getElementById("passBox").style.display = "flex";
+          document.getElementById("dtPassTxt").innerText = res.password;
+        } else alert("Sai mã!");
+      }
+      function copyTxt(t) {
+        navigator.clipboard.writeText(t);
+        const x = document.getElementById("toast");
+        x.className = "show";
+        setTimeout(function () {
+          x.className = x.className.replace("show", "");
+        }, 3000);
+      }
+
+      load();
+    </script>
+  </body>
+</html>
