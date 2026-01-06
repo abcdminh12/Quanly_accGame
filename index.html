@@ -809,7 +809,11 @@
     <div id="toast">Đã copy thành công!</div>
 
     <script>
-      const API = "";
+      // ------------ SỬA Ở ĐÂY ------------
+      // Lúc trước là "" (rỗng), giờ đổi thành "/api" để khớp với server
+      const API = "/api";
+      // -----------------------------------
+
       let list = [],
         curr = null,
         imgs = [],
@@ -817,7 +821,6 @@
       let editingId = null;
 
       // --- LOGIC VIPPRO ADMIN ---
-      // Kiểm tra xem đã lưu mã admin chưa
       function getSavedAdminCode() {
         return localStorage.getItem("vipro_admin_code");
       }
@@ -845,13 +848,19 @@
           statusEl.style.display = "none";
         }
       }
-
       // --- END VIPPRO LOGIC ---
 
       async function load() {
-        list = await (await fetch(`${API}/accounts`)).json();
-        render(list);
-        checkAdminStatus(); // Check ngay khi load
+        try {
+          const res = await fetch(`${API}/accounts`);
+          if (!res.ok) throw new Error("Lỗi kết nối");
+          list = await res.json();
+          render(list);
+          checkAdminStatus();
+        } catch (e) {
+          console.error("Load error:", e);
+          // Không hiện alert lỗi ngay khi mới vào để tránh khó chịu
+        }
       }
 
       function formatMoney(n) {
@@ -1003,18 +1012,22 @@
             method = "PUT";
           }
 
-          const res = await fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-          });
-          if (res.ok) {
-            alert(editingId ? "Đã cập nhật!" : "Đã thêm mới!");
-            resetForm();
-            load();
-            document.getElementById("uploadWrapper").classList.remove("show");
-          } else {
-            alert("Lỗi server!");
+          try {
+            const res = await fetch(url, {
+              method: method,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body),
+            });
+            if (res.ok) {
+              alert(editingId ? "Đã cập nhật!" : "Đã thêm mới!");
+              resetForm();
+              load();
+              document.getElementById("uploadWrapper").classList.remove("show");
+            } else {
+              alert("Lỗi server!");
+            }
+          } catch (e) {
+            alert("Lỗi kết nối server!");
           }
         });
 
@@ -1032,12 +1045,15 @@
       async function del(id, e) {
         e.stopPropagation();
         if (confirm("Xóa vĩnh viễn nhé?")) {
-          await fetch(`${API}/accounts/${id}`, { method: "DELETE" });
-          load();
+          try {
+            await fetch(`${API}/accounts/${id}`, { method: "DELETE" });
+            load();
+          } catch (e) {
+            alert("Lỗi khi xóa!");
+          }
         }
       }
 
-      // XỬ LÝ CHI TIẾT + AUTO REVEAL
       function detail(id, e) {
         e.stopPropagation();
         curr = list.find((a) => a._id === id);
@@ -1054,7 +1070,6 @@
           curr.lastPlayed
         }</b> (Đã Off ${calculateDaysOff(curr.lastPlayed)})`;
 
-        // Mặc định ẩn pass, hiện nút khóa
         document.getElementById("passBox").style.display = "none";
         document.getElementById("unlockBtn").style.display = "block";
 
@@ -1062,7 +1077,6 @@
         idx = 0;
         showSlide();
 
-        // VIPPRO FEATURE: Nếu đã lưu mã admin, tự động gọi API lấy pass
         const savedCode = getSavedAdminCode();
         if (savedCode) {
           revealPassword(savedCode);
@@ -1092,12 +1106,10 @@
         document.getElementById("admCode").focus();
       }
 
-      // Hàm check pass khi nhập tay
       async function manualCheckCode() {
         const c = document.getElementById("admCode").value;
         const success = await revealPassword(c);
         if (success) {
-          // Nếu đúng, lưu lại luôn
           saveAdminCode(c);
           document.getElementById("passModal").style.display = "none";
         } else {
@@ -1105,7 +1117,6 @@
         }
       }
 
-      // Hàm gọi API lấy pass (Tách riêng để dùng lại cho auto-reveal)
       async function revealPassword(code) {
         try {
           const res = await (
@@ -1119,7 +1130,7 @@
           if (res.success) {
             document.getElementById("passBox").style.display = "flex";
             document.getElementById("dtPassTxt").innerText = res.password;
-            document.getElementById("unlockBtn").style.display = "none"; // Ẩn nút khóa đi cho đẹp
+            document.getElementById("unlockBtn").style.display = "none";
             return true;
           }
           return false;
