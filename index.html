@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>⚡ CINEMA MANAGER ⚡</title>
+    <title>⚡ CINEMA MANAGER VIP ⚡</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap"
       rel="stylesheet"
@@ -47,6 +47,7 @@
         max-width: 1000px;
         margin: 0 auto 20px;
         flex-wrap: wrap;
+        align-items: center;
       }
       .search-box {
         flex: 1;
@@ -73,6 +74,22 @@
         border-radius: 30px;
         font-weight: bold;
         cursor: pointer;
+      }
+
+      /* Nút trạng thái Admin */
+      .admin-status {
+        padding: 10px 15px;
+        border-radius: 30px;
+        font-size: 12px;
+        font-weight: bold;
+        display: none;
+        cursor: pointer;
+      }
+      .admin-on {
+        background: rgba(0, 255, 136, 0.2);
+        color: #00ff88;
+        border: 1px solid #00ff88;
+        display: block;
       }
 
       /* FORM HIỆU ỨNG */
@@ -344,7 +361,7 @@
       }
       .btn-edit {
         background: var(--gold);
-      } /* Nút Sửa Mới */
+      }
       .btn-view {
         background: var(--neon-blue);
       }
@@ -355,7 +372,7 @@
         flex: none;
       }
 
-      /* MODAL DETAIL (Giữ nguyên) */
+      /* MODAL DETAIL */
       #detailModal {
         display: none;
         position: fixed;
@@ -446,6 +463,14 @@
         background: #333;
       }
 
+      /* Nút mở khóa */
+      #unlockBtn {
+        margin-top: 30px;
+        background: transparent;
+        border: 1px solid var(--neon-pink);
+        color: var(--neon-pink);
+      }
+
       #passModal {
         display: none;
         position: fixed;
@@ -532,7 +557,7 @@
     </style>
   </head>
   <body>
-    <h1>QUẢN LÝ ACC (EDIT MODE)</h1>
+    <h1>QUẢN LÝ ACC (VIP MODE)</h1>
 
     <div class="toolbar">
       <div class="search-box">
@@ -542,6 +567,14 @@
           placeholder="Tìm kiếm..."
           onkeyup="filterAcc()"
         />
+      </div>
+      <div
+        id="adminStatus"
+        class="admin-status"
+        title="Click để đăng xuất"
+        onclick="logoutAdmin()"
+      >
+        <i class="fas fa-user-shield"></i> VIP ADMIN
       </div>
       <button
         class="btn-toggle"
@@ -724,21 +757,14 @@
             style="margin-top: 20px; white-space: pre-line; color: #bbb"
             id="dtNote"
           ></div>
-          <button
-            class="btn-submit"
-            style="
-              background: transparent;
-              border: 1px solid var(--neon-pink);
-              color: var(--neon-pink);
-              margin-top: 30px;
-            "
-            onclick="openPass()"
-          >
+
+          <button id="unlockBtn" class="btn-submit" onclick="openPass()">
             🔓 MỞ KHÓA PASS
           </button>
         </div>
       </div>
     </div>
+
     <div id="passModal">
       <div
         style="
@@ -767,7 +793,7 @@
         >
           Hủy</button
         ><button
-          onclick="checkCode()"
+          onclick="manualCheckCode()"
           style="
             padding: 8px 15px;
             background: var(--neon-pink);
@@ -790,9 +816,42 @@
         idx = 0;
       let editingId = null;
 
+      // --- LOGIC VIPPRO ADMIN ---
+      // Kiểm tra xem đã lưu mã admin chưa
+      function getSavedAdminCode() {
+        return localStorage.getItem("vipro_admin_code");
+      }
+
+      function saveAdminCode(code) {
+        localStorage.setItem("vipro_admin_code", code);
+        checkAdminStatus();
+      }
+
+      function logoutAdmin() {
+        if (confirm("Bạn muốn đăng xuất chế độ Admin?")) {
+          localStorage.removeItem("vipro_admin_code");
+          checkAdminStatus();
+          alert("Đã đăng xuất! Lần sau xem pass phải nhập lại mã.");
+        }
+      }
+
+      function checkAdminStatus() {
+        const code = getSavedAdminCode();
+        const statusEl = document.getElementById("adminStatus");
+        if (code) {
+          statusEl.className = "admin-status admin-on";
+        } else {
+          statusEl.className = "admin-status";
+          statusEl.style.display = "none";
+        }
+      }
+
+      // --- END VIPPRO LOGIC ---
+
       async function load() {
         list = await (await fetch(`${API}/accounts`)).json();
         render(list);
+        checkAdminStatus(); // Check ngay khi load
       }
 
       function formatMoney(n) {
@@ -977,6 +1036,8 @@
           load();
         }
       }
+
+      // XỬ LÝ CHI TIẾT + AUTO REVEAL
       function detail(id, e) {
         e.stopPropagation();
         curr = list.find((a) => a._id === id);
@@ -992,11 +1053,22 @@
         ).innerHTML = `<i class="far fa-clock"></i> Ngày vào game cuối: <b>${
           curr.lastPlayed
         }</b> (Đã Off ${calculateDaysOff(curr.lastPlayed)})`;
+
+        // Mặc định ẩn pass, hiện nút khóa
         document.getElementById("passBox").style.display = "none";
+        document.getElementById("unlockBtn").style.display = "block";
+
         imgs = curr.resourceImages.length ? curr.resourceImages : [curr.avatar];
         idx = 0;
         showSlide();
+
+        // VIPPRO FEATURE: Nếu đã lưu mã admin, tự động gọi API lấy pass
+        const savedCode = getSavedAdminCode();
+        if (savedCode) {
+          revealPassword(savedCode);
+        }
       }
+
       function showSlide() {
         document.getElementById("dtMainImg").src = imgs[idx];
         document.getElementById("dtThumbs").innerHTML = imgs
@@ -1019,21 +1091,44 @@
         document.getElementById("admCode").value = "";
         document.getElementById("admCode").focus();
       }
-      async function checkCode() {
+
+      // Hàm check pass khi nhập tay
+      async function manualCheckCode() {
         const c = document.getElementById("admCode").value;
-        const res = await (
-          await fetch(`${API}/reveal`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: curr._id, masterCode: c }),
-          })
-        ).json();
-        if (res.success) {
+        const success = await revealPassword(c);
+        if (success) {
+          // Nếu đúng, lưu lại luôn
+          saveAdminCode(c);
           document.getElementById("passModal").style.display = "none";
-          document.getElementById("passBox").style.display = "flex";
-          document.getElementById("dtPassTxt").innerText = res.password;
-        } else alert("Sai mã!");
+        } else {
+          alert("Sai mã rồi đại ca ơi!");
+        }
       }
+
+      // Hàm gọi API lấy pass (Tách riêng để dùng lại cho auto-reveal)
+      async function revealPassword(code) {
+        try {
+          const res = await (
+            await fetch(`${API}/reveal`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: curr._id, masterCode: code }),
+            })
+          ).json();
+
+          if (res.success) {
+            document.getElementById("passBox").style.display = "flex";
+            document.getElementById("dtPassTxt").innerText = res.password;
+            document.getElementById("unlockBtn").style.display = "none"; // Ẩn nút khóa đi cho đẹp
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error(e);
+          return false;
+        }
+      }
+
       function copyTxt(t) {
         navigator.clipboard.writeText(t);
         const x = document.getElementById("toast");
